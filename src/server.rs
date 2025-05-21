@@ -37,9 +37,22 @@ async fn handle_status(stream: &mut TcpStream, config: Config, protocol: i32) ->
     request.truncate(n);
 
     let mut status = config.status;
-    if status.version.same.is_some() {
+
+    // Set the protocol version
+    // If status version is set to "same" or protocol is not set, set it to same protocol as the client
+    if status.version.same == Some(true)
+        || status
+            .version
+            .info
+            .as_ref()
+            .map_or(true, |info| info.protocol.is_none())
+    {
         status.version.info = Some(VersionInfo {
-            name: "same".to_string(),
+            name: status
+                .version
+                .info
+                .as_ref()
+                .map_or("same".to_string(), |info| info.name.clone()),
             protocol: Some(protocol),
         });
     }

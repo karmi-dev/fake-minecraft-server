@@ -17,5 +17,6 @@ status:
         id: c349b9ff-5c76-4831-b06b-d62c14791339
 
   description: "§cFake Minecraft Server"
+  favicon: server-icon.png
 
 kick_message: "§c§lThis is a fake server!\n§eIt only responds to ping requests."

@@ -3,8 +3,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Serialize, Deserialize)]
 pub struct StatusResponse {
     pub version: Version,
+
+    /// Optional fields
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub players: Option<Players>,
-    pub description: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub favicon: Option<String>,
 }
 
@@ -35,6 +40,7 @@ pub struct VersionInfo {
 pub struct Players {
     pub max: i32,
     pub online: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sample: Option<Vec<Player>>,
 }
 
