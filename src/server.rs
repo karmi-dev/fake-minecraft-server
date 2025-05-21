@@ -3,15 +3,16 @@ use std::io;
 use tokio::io::AsyncReadExt as _;
 use tokio::net::TcpStream;
 
-use crate::models::{Description, Players, StatusResponse, Version, PROTOCOL_VERSION};
+use crate::config::Config;
+use crate::models::VersionInfo;
 use crate::protocol::{read_varint, send_pong, write_response};
 
-pub async fn handle_client(mut stream: TcpStream) -> io::Result<()> {
+pub async fn handle_client(mut stream: TcpStream, config: Config) -> io::Result<()> {
     let _packet_length = read_varint(&mut stream).await?;
     let packet_id = read_varint(&mut stream).await?;
 
     if packet_id == 0x00 {
-        let _protocol_version = read_varint(&mut stream).await?;
+        let protocol = read_varint(&mut stream).await?;
         let hostname_len = read_varint(&mut stream).await?;
         let mut hostname = vec![0; hostname_len as usize];
         stream.read_exact(&mut hostname).await?;
@@ -21,8 +22,8 @@ pub async fn handle_client(mut stream: TcpStream) -> io::Result<()> {
         let next_state = read_varint(&mut stream).await?;
 
         match next_state {
-            1 => handle_status(&mut stream).await?,
-            2 => handle_login(&mut stream).await?,
+            1 => handle_status(&mut stream, config, protocol).await?,
+            2 => handle_login(&mut stream, config).await?,
             _ => {}
         }
     }
@@ -30,21 +31,18 @@ pub async fn handle_client(mut stream: TcpStream) -> io::Result<()> {
     Ok(())
 }
 
-async fn handle_status(stream: &mut TcpStream) -> io::Result<()> {
+async fn handle_status(stream: &mut TcpStream, config: Config, protocol: i32) -> io::Result<()> {
     let mut request = vec![0; 1024];
     let n = stream.read(&mut request).await?;
     request.truncate(n);
 
-    let status = StatusResponse {
-        version: Version {
-            name: "1.19.4".to_string(),
-            protocol: PROTOCOL_VERSION,
-        },
-        players: Players { max: 20, online: 0 },
-        description: Description {
-            text: "§cFake Minecraft Server".to_string(),
-        },
-    };
+    let mut status = config.status;
+    if status.version.same.is_some() {
+        status.version.info = Some(VersionInfo {
+            name: "same".to_string(),
+            protocol: Some(protocol),
+        });
+    }
 
     write_response(stream, &json!(status).to_string()).await?;
 
@@ -60,17 +58,17 @@ async fn handle_status(stream: &mut TcpStream) -> io::Result<()> {
     Ok(())
 }
 
-async fn handle_login(stream: &mut TcpStream) -> io::Result<()> {
+async fn handle_login(stream: &mut TcpStream, config: Config) -> io::Result<()> {
     let mut login_data = vec![0; 1024];
     let n = stream.read(&mut login_data).await?;
     login_data.truncate(n);
 
-    let disconnect_msg = json!({
-        "text": "§c§lThis is a fake server!\n§eIt only responds to ping requests."
+    let kick_msg = json!({
+        "text": config.kick_msg,
     })
     .to_string();
 
-    write_response(stream, &disconnect_msg).await?;
+    write_response(stream, &kick_msg).await?;
 
     Ok(())
 }
