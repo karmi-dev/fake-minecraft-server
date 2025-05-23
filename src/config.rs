@@ -61,7 +61,7 @@ impl Config {
 
     pub fn handle_logs(&self) {
         if self.default {
-            info!("Config file not found, using default configuration.");
+            info!("Config file not found, using default configuration");
         }
     }
 
@@ -70,7 +70,11 @@ impl Config {
             match Self::load_favicon_as_base64(favicon.to_string()) {
                 Ok(favicon_base64) => self.status.favicon = Some(favicon_base64),
                 Err(e) => {
-                    error!("Error loading favicon: {}", e);
+                    // Only log favicon errors for custom configs, since default config includes a known favicon
+                    if !self.default {
+                        error!("Error loading favicon: {}", e);
+                    }
+
                     self.status.favicon = None;
                 }
             }
