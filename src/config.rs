@@ -5,9 +5,17 @@ use tracing::{error, info};
 
 use crate::models::{Players, StatusResponse, Version};
 
+fn default_false() -> bool {
+    false
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Config {
+    // This field is used to determine if the config file was found
+    #[serde(skip, default = "default_false")]
+    default: bool,
+
     pub debug: bool,
     pub host: String,
     pub port: u16,
@@ -18,6 +26,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
+            default: true,
             debug: false,
             host: "127.0.0.1".to_string(),
             port: 25565,
@@ -40,51 +49,57 @@ impl Default for Config {
 impl Config {
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, io::Error> {
         if !path.as_ref().exists() {
-            info!("Config file not found, using default configuration.");
             return Ok(Config::default());
         }
 
         let contents = fs::read_to_string(path)?;
-        let mut config: Config = serde_yaml::from_str(&contents)
+        let config: Config = serde_yaml::from_str(&contents)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        // Handle the favicon
-        if let Some(favicon) = config.status.favicon {
-            match Self::load_favicon_as_base64(favicon) {
-                Ok(favicon_base64) => config.status.favicon = Some(favicon_base64),
-                Err(e) => {
-                    error!("Error loading favicon: {}", e);
-                    config.status.favicon = None;
-                }
-            }
-        }
 
         Ok(config)
     }
 
+    pub fn handle_logs(&self) {
+        if self.default {
+            info!("Config file not found, using default configuration.");
+        }
+    }
+
+    pub fn handle_favicon(&mut self) {
+        if let Some(favicon) = &self.status.favicon {
+            match Self::load_favicon_as_base64(favicon.to_string()) {
+                Ok(favicon_base64) => self.status.favicon = Some(favicon_base64),
+                Err(e) => {
+                    error!("Error loading favicon: {}", e);
+                    self.status.favicon = None;
+                }
+            }
+        }
+    }
+
     fn load_favicon_as_base64(favicon: String) -> Result<String, io::Error> {
         if favicon.starts_with("data:image/png;base64,") {
-            Ok(favicon)
-        } else {
-            let favicon_path = Path::new(&favicon);
-            if favicon_path.extension().and_then(|ext| ext.to_str()) != Some("png") {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "Favicon must be a PNG file",
-                ));
-            }
-
-            if !favicon_path.exists() {
-                return Err(io::Error::new(
-                    io::ErrorKind::NotFound,
-                    format!("Favicon file doesn't exist: {}", favicon_path.display()),
-                ));
-            }
-
-            let favicon_bytes = fs::read(favicon)?;
-            let favicon_base64 = base64_engine::STANDARD.encode(&favicon_bytes);
-
-            Ok(format!("data:image/png;base64,{}", favicon_base64))
+            return Ok(favicon);
         }
+
+        let favicon_path = Path::new(&favicon);
+        if favicon_path.extension().and_then(|ext| ext.to_str()) != Some("png") {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "Favicon must be a PNG file",
+            ));
+        }
+
+        if !favicon_path.exists() {
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                format!("Favicon file doesn't exist: {}", favicon_path.display()),
+            ));
+        }
+
+        let favicon_bytes = fs::read(favicon)?;
+        let favicon_base64 = base64_engine::STANDARD.encode(&favicon_bytes);
+
+        Ok(format!("data:image/png;base64,{}", favicon_base64))
     }
 }
