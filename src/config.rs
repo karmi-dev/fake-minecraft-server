@@ -28,7 +28,7 @@ impl Default for Config {
                     online: 0,
                     sample: None,
                 }),
-                description: Some("§cFake Minecraft Server".to_string()),
+                motd: Some("§cFake Minecraft Server".to_string()),
                 favicon: Some("server-icon.png".to_string()),
             },
             kick_msg: "§c§lThis is a fake server!\n§eIt only responds to ping requests."

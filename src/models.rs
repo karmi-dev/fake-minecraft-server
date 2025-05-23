@@ -8,7 +8,8 @@ pub struct StatusResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub players: Option<Players>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
+    #[serde(rename(serialize = "description"))]
+    pub motd: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub favicon: Option<String>,
 }
