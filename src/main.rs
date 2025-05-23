@@ -18,9 +18,14 @@ async fn main() -> io::Result<()> {
         }
     };
 
-    env_logger::init_from_env(
-        env_logger::Env::default().default_filter_or(if !config.debug { "info" } else { "debug" }),
-    );
+    env_logger::init_from_env(env_logger::Env::default().default_filter_or(
+        // Set log level to "debug" if enabled in config or environment; default is "info"
+        if !config.debug && env::var("DEBUG").map(|v| v != "true").unwrap_or(true) {
+            "info"
+        } else {
+            "debug"
+        },
+    ));
 
     let listener = TcpListener::bind(format!("{}:{}", config.host, config.port)).await?;
     info!("Server listening on port {}", config.port);
