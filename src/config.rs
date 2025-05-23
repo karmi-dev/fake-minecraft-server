@@ -1,4 +1,5 @@
 use base64::{engine::general_purpose as base64_engine, Engine as _};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::{fs, io, path::Path};
 
@@ -7,6 +8,7 @@ use crate::models::{Players, StatusResponse, Version};
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Config {
+    pub debug: bool,
     pub host: String,
     pub port: u16,
     pub status: StatusResponse,
@@ -16,6 +18,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
+            debug: false,
             host: "127.0.0.1".to_string(),
             port: 25565,
             status: StatusResponse {
@@ -37,7 +40,7 @@ impl Default for Config {
 impl Config {
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, io::Error> {
         if !path.as_ref().exists() {
-            println!("Config file not found, using default configuration.");
+            info!("Config file not found, using default configuration.");
             return Ok(Config::default());
         }
 
@@ -50,7 +53,7 @@ impl Config {
             match Self::load_favicon_as_base64(favicon) {
                 Ok(favicon_base64) => config.status.favicon = Some(favicon_base64),
                 Err(e) => {
-                    eprintln!("Error loading favicon: {}", e);
+                    error!("Error loading favicon: {}", e);
                     config.status.favicon = None;
                 }
             }

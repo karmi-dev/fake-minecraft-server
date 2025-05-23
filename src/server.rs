@@ -1,3 +1,4 @@
+use log::debug;
 use serde_json::json;
 use std::io;
 use tokio::io::AsyncReadExt as _;
@@ -55,6 +56,16 @@ async fn handle_status(stream: &mut TcpStream, config: Config, protocol: i32) ->
                 .map_or("same".to_string(), |info| info.name.clone()),
             protocol: Some(protocol),
         });
+    }
+
+    if log::log_enabled!(log::Level::Debug) {
+        let mut debug_status = status.clone();
+
+        // Limit the length of the status favicon
+        debug_status.favicon = debug_status.favicon.map(|f| f.chars().take(40).collect());
+
+        let debug_json = json!(debug_status);
+        debug!("Status JSON: {}", debug_json);
     }
 
     write_response(stream, &json!(status).to_string()).await?;

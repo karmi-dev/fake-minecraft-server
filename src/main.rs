@@ -4,6 +4,7 @@ mod protocol;
 mod server;
 
 use config::Config;
+use log::{debug, info};
 use std::{env, io};
 use tokio::net::TcpListener;
 
@@ -17,23 +18,27 @@ async fn main() -> io::Result<()> {
         }
     };
 
-    let listener = TcpListener::bind("0.0.0.0:25565").await?;
-    println!("Server listening on port 25565");
+    env_logger::init_from_env(
+        env_logger::Env::default().default_filter_or(if !config.debug { "info" } else { "debug" }),
+    );
+
+    let listener = TcpListener::bind(format!("{}:{}", config.host, config.port)).await?;
+    info!("Server listening on port {}", config.port);
 
     loop {
         match listener.accept().await {
             Ok((stream, addr)) => {
-                println!("New connection from: {}", addr);
+                debug!("New connection from: {}", addr);
 
                 let config = config.clone();
                 tokio::spawn(async move {
                     if let Err(e) = server::handle_client(stream, config).await {
-                        eprintln!("Error handling client {}: {}", addr, e);
+                        debug!("Error handling client {}: {}", addr, e);
                     }
                 });
             }
             Err(e) => {
-                eprintln!("Error accepting connection: {}", e);
+                debug!("Error accepting connection: {}", e);
             }
         }
     }
