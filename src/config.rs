@@ -1,7 +1,7 @@
 use base64::{engine::general_purpose as base64_engine, Engine as _};
-use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::{fs, io, path::Path};
+use tracing::{error, info};
 
 use crate::models::{Players, StatusResponse, Version};
 

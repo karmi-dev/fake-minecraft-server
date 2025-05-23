@@ -1,8 +1,8 @@
-use log::debug;
 use serde_json::json;
 use std::io;
 use tokio::io::AsyncReadExt as _;
 use tokio::net::TcpStream;
+use tracing::debug;
 
 use crate::config::Config;
 use crate::models::VersionInfo;
@@ -58,7 +58,7 @@ async fn handle_status(stream: &mut TcpStream, config: Config, protocol: i32) ->
         });
     }
 
-    if log::log_enabled!(log::Level::Debug) {
+    if tracing::enabled!(tracing::Level::DEBUG) {
         let mut debug_status = status.clone();
 
         // Limit the length of the status favicon

@@ -4,9 +4,10 @@ mod protocol;
 mod server;
 
 use config::Config;
-use log::{debug, info};
 use std::{env, io};
 use tokio::net::TcpListener;
+use tracing::{debug, info, info_span, Instrument};
+use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -18,14 +19,19 @@ async fn main() -> io::Result<()> {
         }
     };
 
-    env_logger::init_from_env(env_logger::Env::default().default_filter_or(
-        // Set log level to "debug" if enabled in config or environment; default is "info"
-        if !config.debug && env::var("DEBUG").map(|v| v != "true").unwrap_or(true) {
-            "info"
-        } else {
-            "debug"
-        },
-    ));
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+            EnvFilter::new(
+                // Set log level to "debug" if enabled in config or environment; default is "info"
+                if !config.debug && env::var("DEBUG").map(|v| v != "true").unwrap_or(true) {
+                    "info"
+                } else {
+                    "debug"
+                },
+            )
+        }))
+        .with_target(false)
+        .init();
 
     let listener = TcpListener::bind(format!("{}:{}", config.host, config.port)).await?;
     info!("Server listening on port {}", config.port);
@@ -36,11 +42,14 @@ async fn main() -> io::Result<()> {
                 debug!("New connection from: {}", addr);
 
                 let config = config.clone();
-                tokio::spawn(async move {
-                    if let Err(e) = server::handle_client(stream, config).await {
-                        debug!("Error handling client {}: {}", addr, e);
+                tokio::spawn(
+                    async move {
+                        if let Err(e) = server::handle_client(stream, config).await {
+                            debug!("Error handling client: {}", e);
+                        }
                     }
-                });
+                    .instrument(info_span!("client", "{}", addr)),
+                );
             }
             Err(e) => {
                 debug!("Error accepting connection: {}", e);
