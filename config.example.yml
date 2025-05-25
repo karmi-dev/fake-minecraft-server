@@ -2,7 +2,7 @@
 debug: false
 
 # IP address the server will listen on
-host: 127.0.0.1
+host: 0.0.0.0
 # Port number the server will listen on (default Minecraft port is 25565)
 port: 25565
 

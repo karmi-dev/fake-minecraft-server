@@ -21,7 +21,7 @@ Example configuration file with comments is provided in [`config.example.yml`](h
 ```yaml
 debug: false
 
-host: 127.0.0.1
+host: 0.0.0.0
 port: 25565
 
 status:

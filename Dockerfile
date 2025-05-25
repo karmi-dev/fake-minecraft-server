@@ -1,0 +1,23 @@
+# build stage
+FROM rust:1.87.0-slim AS builder
+WORKDIR /code
+
+COPY Cargo.toml Cargo.lock ./
+
+# caches cargo dependencies
+RUN cargo fetch
+
+# copy server source code
+COPY src src
+
+# build release binary
+RUN cargo build --release
+
+# run stage
+FROM gcr.io/distroless/cc:latest
+
+# copy server binary from build stage
+COPY --from=builder /code/target/release/server /usr/local/bin/server
+
+# start server
+CMD [ "/usr/local/bin/server" ]

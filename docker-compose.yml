@@ -1,0 +1,10 @@
+services:
+  server:
+    build: .
+    ports:
+      - "127.0.0.1:25565:25565"
+    environment:
+      - DEBUG=true
+    volumes:
+      - ./config.yml:/config.yml
+      - ./server-icon.png:/server-icon.png

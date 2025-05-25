@@ -28,7 +28,7 @@ impl Default for Config {
         Config {
             default: true,
             debug: false,
-            host: "127.0.0.1".to_string(),
+            host: "0.0.0.0".to_string(),
             port: 25565,
             status: StatusResponse {
                 version: Version::default(),
