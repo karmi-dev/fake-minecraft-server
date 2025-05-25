@@ -4,6 +4,10 @@
 
 Lightweight Rust implementation of a fake Minecraft server. It supports server list responses (status/ping) and connection attempts, useful for testing clients or as a placeholder server.
 
+<img src="https://github.com/user-attachments/assets/829ff354-60a0-41d8-8de5-3d6863de6b19" alt="Server list" width="600"/>
+<br>
+<img src="https://github.com/user-attachments/assets/a0f20c5a-36a7-4827-b2cd-3a5677de48db" alt="Connection attempt" width="400"/>
+
 ## Configuration
 
 Server uses a YAML configuration file (`config.yml`). If no configuration is found, default values will be used.
