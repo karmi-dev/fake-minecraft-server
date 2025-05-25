@@ -1,22 +1,43 @@
+# Enable debug logging in addition to DEBUG/RUST_LOG environment variable
+debug: false
+
+# IP address the server will listen on
 host: 127.0.0.1
+# Port number the server will listen on (default Minecraft port is 25565)
 port: 25565
 
+# Server status response configuration
 status:
+  # Version information shown in the server list
   version:
+    # Minecraft version string to display
     name: 1.21.5
+    # Protocol version number (see: https://minecraft.wiki/w/Data_version)
     protocol: 770
+    # If true, server will report same version as client
     same: false
 
+  # Player count and sample configuration
   players:
+    # Maximum number of players shown in server list
     max: 20
+    # Current player count shown in server list
     online: 0
+    # Optional list of fake players to display in the server list
     sample:
       - name: Player1
         id: b3a2c344-e57e-43f9-97a6-494d060f0d01
       - name: Player2
         id: c349b9ff-5c76-4831-b06b-d62c14791339
 
+  # Server motd (description)
   motd: "§cFake Minecraft Server"
+
+  # Server icon configuration
+  # Can be either:
+  # 1. Path to a 64x64 PNG file
+  # 2. Base64 data URI starting with "data:image/png;base64,"
   favicon: server-icon.png
 
+# Message shown to players when they try to connect
 kick_message: "§c§lThis is a fake server!\n§eIt only responds to ping requests."
