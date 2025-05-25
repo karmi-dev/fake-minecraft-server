@@ -44,7 +44,7 @@ To enable debug logging, you can either:
 
 1. Set the environment variable:
 
-   ```bash
+   ```env
    DEBUG=true
    # or Rust lang
    RUST_LOG="debug"
