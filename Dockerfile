@@ -17,7 +17,7 @@ RUN cargo build --release
 FROM gcr.io/distroless/cc:latest
 
 # copy server binary from build stage
-COPY --from=builder /code/target/release/server /usr/local/bin/server
+COPY --from=builder /code/target/release/fake-server /usr/local/bin/fake-server
 
 # start server
-ENTRYPOINT [ "/usr/local/bin/server" ]
+ENTRYPOINT [ "/usr/local/bin/fake-server" ]
