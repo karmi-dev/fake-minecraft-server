@@ -2,10 +2,12 @@ mod config;
 mod models;
 mod protocol;
 mod server;
+mod shutdown;
 
 use config::Config;
+use shutdown::Shutdown;
 use std::{env, io};
-use tokio::net::TcpListener;
+use tokio::{net::TcpListener, select};
 use tracing::{debug, info, info_span, Instrument};
 use tracing_subscriber::EnvFilter;
 
@@ -39,24 +41,37 @@ async fn main() -> io::Result<()> {
     let listener = TcpListener::bind(format!("{}:{}", config.host, config.port)).await?;
     info!("Server listening on port {}", config.port);
 
-    loop {
-        match listener.accept().await {
-            Ok((stream, addr)) => {
-                debug!("New connection from: {}", addr);
+    let mut shutdown = Shutdown::new()?;
 
-                let config = config.clone();
-                tokio::spawn(
-                    async move {
-                        if let Err(e) = server::handle_client(stream, config).await {
-                            debug!("Error handling client: {}", e);
-                        }
+    loop {
+        select! {
+            conn = listener.accept() => {
+                match conn {
+                    Ok((stream, addr)) => {
+                        debug!("New connection from: {}", addr);
+
+                        let config = config.clone();
+                        tokio::spawn(
+                            async move {
+                                if let Err(e) = server::handle_client(stream, config).await {
+                                    debug!("Error handling client: {}", e);
+                                }
+                            }
+                            .instrument(info_span!("client", "{}", addr)),
+                        );
                     }
-                    .instrument(info_span!("client", "{}", addr)),
-                );
+                    Err(e) => {
+                        debug!("Error accepting connection: {}", e);
+                    }
+                }
             }
-            Err(e) => {
-                debug!("Error accepting connection: {}", e);
+
+            _ = shutdown.wait_for_shutdown() => {
+                break;
             }
         }
     }
+
+    info!("Shutting down server...");
+    Ok(())
 }

@@ -20,4 +20,4 @@ FROM gcr.io/distroless/cc:latest
 COPY --from=builder /code/target/release/server /usr/local/bin/server
 
 # start server
-CMD [ "/usr/local/bin/server" ]
+ENTRYPOINT [ "/usr/local/bin/server" ]
