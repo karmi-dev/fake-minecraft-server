@@ -10,17 +10,28 @@ env:
 jobs:
   update-version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Update version in Cargo.toml
         run: |
           VERSION=${{ github.event.release.tag_name }}
           VERSION=${VERSION#v}  # Remove 'v' prefix if present
           sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
 
+      - name: Update Cargo.lock (if exists)
+        run: |
+          if [ -f "Cargo.lock" ]; then
+            echo "Updating Cargo.lock..."
+            cargo check --quiet || echo "Cargo check completed"
+          fi
+
       - name: Commit version update
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git commit -am "Update version to ${{ github.event.release.tag_name }}"
-          git push
+          git push origin HEAD:${{ github.event.repository.default_branch }}
