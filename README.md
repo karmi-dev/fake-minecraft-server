@@ -8,6 +8,18 @@ Lightweight Rust implementation of a fake Minecraft server. It supports server l
 <br>
 <img src="https://github.com/user-attachments/assets/a0f20c5a-36a7-4827-b2cd-3a5677de48db" alt="Connection attempt" width="400"/>
 
+## Installation
+
+### Pre-built binaries
+
+You can download pre-built binaries for Windows, macOS, and Linux from the [Releases page](https://github.com/OreQr/fake-minecraft-server/releases).
+
+### Docker
+
+```bash
+docker run -p 25565:25565 -v ./config.yml:/config.yml ghcr.io/oreqr/fake-minecraft-server:latest
+```
+
 ## Configuration
 
 Server uses a YAML configuration file (`config.yml`). If no configuration is found, default values will be used.
