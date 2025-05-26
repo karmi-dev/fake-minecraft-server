@@ -16,6 +16,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+
       - name: Update version in Cargo.toml
         run: |
           VERSION=${{ github.event.release.tag_name }}

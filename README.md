@@ -17,7 +17,7 @@ You can download pre-built binaries for Windows, macOS, and Linux from the [Rele
 ### Docker
 
 ```bash
-docker run -p 25565:25565 -v "$(pwd)/config.yml:/config.yml" ghcr.io/oreqr/fake-minecraft-server:latest
+docker run --name fake-server -d -p 25565:25565 -v "$(pwd)/config.yml:/config.yml" ghcr.io/oreqr/fake-minecraft-server:latest
 ```
 
 ## Configuration

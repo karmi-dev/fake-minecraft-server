@@ -1,4 +1,4 @@
-name: Build Release
+name: Build release
 
 on:
   release:
@@ -47,13 +47,8 @@ jobs:
           strip target/${{ matrix.target }}/release/${{ matrix.artifact_name }} || true
           mv target/${{ matrix.target }}/release/${{ matrix.artifact_name }} ${{ matrix.asset_name }}
 
-      - name: Upload Release Asset
+      - name: Upload release asset
         if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./${{ matrix.asset_name }}
-          asset_name: ${{ matrix.asset_name }}
-          asset_content_type: application/octet-stream
+          files: ${{ matrix.asset_name }}
