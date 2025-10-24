@@ -38,8 +38,15 @@ async fn main() -> io::Result<()> {
     config.handle_logs();
     config.handle_favicon();
 
-    let listener = TcpListener::bind(format!("{}:{}", config.host, config.port)).await?;
-    info!("Server listening on port {}", config.port);
+    // Build address string; if host looks like IPv6 (contains ':'), wrap it in brackets
+    let bind_addr = if config.host.contains(':') && !config.host.starts_with('[') {
+        format!("[{}]:{}", config.host, config.port)
+    } else {
+        format!("{}:{}", config.host, config.port)
+    };
+
+    let listener = TcpListener::bind(&bind_addr).await?;
+    info!("Server listening on {}", bind_addr);
 
     let mut shutdown = Shutdown::new()?;
 
