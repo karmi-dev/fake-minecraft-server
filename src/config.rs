@@ -28,7 +28,8 @@ impl Default for Config {
         Config {
             default: true,
             debug: false,
-            host: "0.0.0.0".to_string(),
+            // Default to IPv6 any-address. Set to "0.0.0.0" in config.yml if you want IPv4-only.
+            host: "::".to_string(),
             port: 25565,
             status: StatusResponse {
                 version: Version::default(),
